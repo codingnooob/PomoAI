@@ -6,56 +6,53 @@
 //
 
 import SwiftUI
-import SwiftData
-
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @State var geo: CGSize = .zero
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+        VStack {
+            VStack(alignment: .leading) {
+                VStack(alignment: .leading) {
+                    Button(action: { } ) {
+                        Text("Start")
+                          .font(.system(size: 17))
+                          .frame(maxWidth: .infinity, alignment: .center)
                     }
+                    .buttonStyle(BorderedProminentButtonStyle())
+                    .tint(.green)
+                    .controlSize(.large)
+                    .buttonBorderShape(.automatic)
                 }
-                .onDelete(perform: deleteItems)
+                .fixedSize(horizontal: true, vertical: false)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-        } detail: {
-            Text("Select an item")
+            .fixedSize(horizontal: true, vertical: false)
+            .frame(width: geo.width * 0.8, alignment: .topLeading)
+            .offset(y: 103)
         }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+        .frame(minWidth: UIScreen.main.bounds.width, maxWidth: .infinity, minHeight: UIScreen.main.bounds.height, maxHeight: .infinity, alignment: .topLeading )
+        .saveSize(in: $geo)
+        .ignoresSafeArea()
     }
 }
 
+/// Allows for percentage based layouts
+struct SizeCalculator: ViewModifier {
+    @Binding var size: CGSize
+    func body(content: Content) -> some View {
+        content.background(
+            GeometryReader { proxy in
+                Color.clear.onAppear { size = proxy.size }
+            }
+        )
+    }
+}
+extension View {
+    func saveSize(in size: Binding<CGSize>) -> some View {
+        modifier(SizeCalculator(size: size))
+    }
+}
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
+
+// (v.11558437083) SwiftUI v4.0
